@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VoiceBet Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      color: #333;
+    }
+    button {
+      padding: 15px 30px;
+      font-size: 18px;
+      background-color: #0078D4;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005a9e;
+    }
+    #response {
+      margin-top: 30px;
+      font-size: 20px;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎙️ VoiceBet Demo</h1>
+  <p>Say your bet or click the button to simulate:</p>
+  <button onclick="startVoiceBet()">Play Orlando Pirates to win</button>
+  <p id="response"></p>
+
+  <script>
+    function startVoiceBet() {
+      const response = document.getElementById("response");
+      response.textContent = "🎉 Bet placed: R10 on Orlando Pirates to win!";
+    }
+  </script>
+</body>
+</html>
+
