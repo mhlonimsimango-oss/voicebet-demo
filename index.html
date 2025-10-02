@@ -3,90 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VoiceBet Demo</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 50px;
-      background-color: #f4f4f4;
-    }
-    h1 {
-      color: #333;
-    }
-    button {
-      padding: 15px 30px;
-      font-size: 18px;
-      background-color: #0078D4;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      margin: 10px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #005a9e;
-    }
-    select {
-      font-size: 16px;
-      padding: 8px;
-      margin-top: 20px;
-    }
-    #transcript, #response {
-      margin-top: 30px;
-      font-size: 20px;
-    }
-    #transcript {
-      color: #555;
-    }
-    #response {
-      color: green;
-    }
-  </style>
+  <title>VoiceBet – Hollywoodbets</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <h1>🎙️ VoiceBet Demo</h1>
-  <p>Select your language:</p>
-  <select id="language">
-    <option value="en">English</option>
-    <option value="zu">isiZulu</option>
-    <option value="st">Sesotho</option>
-  </select>
+  <div class="container">
+    <h1>🎙️ VoiceBet</h1>
+    <p>Select your language:</p>
+    <select id="language">
+      <option value="en">English</option>
+      <option value="zu">isiZulu</option>
+      <option value="st">Sesotho</option>
+    </select>
 
-  <p>Click a button to simulate a voice command:</p>
-  <button onclick="simulateVoiceInput('Play Orlando Pirates to win', 'R10 on Orlando Pirates to win')">Pirates to Win</button>
-  <button onclick="simulateVoiceInput('Bet R20 on Kaizer Chiefs to draw', 'R20 on Kaizer Chiefs to draw')">Chiefs to Draw</button>
-  <button onclick="simulateVoiceInput('Place R15 on Sundowns to lose', 'R15 on Sundowns to lose')">Sundowns to Lose</button>
+    <button id="startBtn">Start VoiceBet</button>
+    <div id="response"></div>
+  </div>
 
-  <p id="transcript"></p>
-  <p id="response"></p>
-
-  <script>
-    function simulateVoiceInput(userCommand, betDetails) {
-      const transcript = document.getElementById("transcript");
-      const response = document.getElementById("response");
-      const language = document.getElementById("language").value;
-
-      transcript.textContent = `🗣️ You said: '${userCommand}'`;
-      response.textContent = `🎉 Bet placed: ${betDetails}`;
-
-      let feedbackText = '';
-      switch (language) {
-        case 'en':
-          feedbackText = "Your bet has been placed successfully.";
-          break;
-        case 'zu':
-          feedbackText = "Ukubheja kwakho kufakwe ngempumelelo.";
-          break;
-        case 'st':
-          feedbackText = "Petso ea hau e kentsoe ka katleho.";
-          break;
-      }
-
-      const utterance = new SpeechSynthesisUtterance(feedbackText);
-      utterance.lang = language;
-      speechSynthesis.speak(utterance);
-    }
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
