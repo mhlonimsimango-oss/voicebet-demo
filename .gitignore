@@ -1,0 +1,30 @@
+# Python backend
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+*.env
+*.log
+
+# Node or frontend build tools (if added later)
+node_modules/
+dist/
+build/
+
+# VoiceBet data and secrets
+data/bets_log.json
+config/settings.py
+*.key
+*.pem
+*.sqlite3
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Docs and PDFs (optional)
+docs/*.pdf
