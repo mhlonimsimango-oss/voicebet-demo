@@ -1,0 +1,90 @@
+let selectedLanguage = "en";
+let recognition;
+let step = 0;
+let userData = {
+  language: "",
+  fixture: "",
+  team: "",
+  bet_type: "",
+  amount: ""
+};
+
+document.getElementById("language").addEventListener("change", (e) => {
+  selectedLanguage = e.target.value;
+});
+
+document.getElementById("startBtn").addEventListener("click", () => {
+  userData.language = selectedLanguage;
+  step = 1;
+  speak("Welcome to VoiceBet. Please say the fixture you want to bet on.");
+  startListening();
+});
+
+function startListening() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.lang = selectedLanguage === "zu" ? "zu-ZA" : selectedLanguage === "st" ? "st-ZA" : "en-US";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.start();
+
+  recognition.onresult = async (event) => {
+    const transcript = event.results[0][0].transcript;
+    document.getElementById("response").innerText = `🗣️ You said: ${transcript}`;
+
+    if (step === 1) {
+      userData.fixture = transcript;
+      step = 2;
+      speak("How would you like to bet?");
+      startListening();
+    } else if (step === 2) {
+      userData.bet_type = transcript;
+      step = 3;
+      speak("Which team are you betting on?");
+      startListening();
+    } else if (step === 3) {
+      userData.team = transcript;
+      step = 4;
+      speak("How much would you like to bet?");
+      startListening();
+    } else if (step === 4) {
+      userData.amount = transcript;
+      step = 5;
+      speak("Processing your bet...");
+      sendBetRequest();
+    }
+  };
+
+  recognition.onerror = (event) => {
+    document.getElementById("response").innerText = `❌ Error: ${event.error}`;
+  };
+}
+
+async function sendBetRequest() {
+  const payload = {
+    language: userData.language,
+    intent: "place_bet",
+    fixture: userData.fixture,
+    bet_type: userData.bet_type,
+    team: userData.team,
+    amount: userData.amount
+  };
+
+  const res = await fetch("http://localhost:8000/voicebet", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json();
+  const reply = data.response.join("\n");
+  document.getElementById("response").innerText = `🤖 VoiceBet: ${reply}`;
+  speak(reply);
+}
+
+function speak(text) {
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = selectedLanguage === "zu" ? "zu-ZA" : selectedLanguage === "st" ? "st-ZA" : "en-US";
+  speechSynthesis.speak(utterance);
+}
