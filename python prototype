@@ -1,0 +1,144 @@
+import speech_recognition as sr
+import pyttsx3
+import sqlite3
+import re
+from langdetect import detect
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from bs4 import BeautifulSoup
+import time
+
+# --- Setup voice engine ---
+engine = pyttsx3.init()
+def speak(text):
+    print("🗣️", text)
+    engine.say(text)
+    engine.runAndWait()
+
+# --- Setup database ---
+conn = sqlite3.connect("voicebet.db")
+cursor = conn.cursor()
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS bets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT,
+    language TEXT,
+    match TEXT,
+    bet_type TEXT,
+    amount INTEGER,
+    authenticated BOOLEAN,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+""")
+conn.commit()
+
+# --- Scrape Betway fixtures (simplified) ---
+def get_fixtures():
+    options = Options()
+    options.add_argument("--headless")
+    driver = webdriver.Chrome(options=options)
+    driver.get("https://betway.com/g/en/sports/cat/soccer")
+    time.sleep(5)
+    soup = BeautifulSoup(driver.page_source, "html.parser")
+    driver.quit()
+
+    fixtures = []
+    for match in soup.find_all("div", class_="event-row"):
+        teams = match.get_text(strip=True)
+        fixtures.append(teams.lower())
+    return fixtures
+
+# --- Listen to voice ---
+def listen():
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("🎤 Listening...")
+        audio = recognizer.listen(source)
+    try:
+        command = recognizer.recognize_google(audio)
+        print("📝 You said:", command)
+        return command.lower()
+    except:
+        speak("Sorry, I didn't catch that.")
+        return ""
+
+# --- Simulated voice authentication ---
+def authenticate_user():
+    speak("Please say your name for authentication.")
+    name = listen()
+    if name:
+        speak(f"Welcome back, {name.title()}. Authentication successful.")
+        return name
+    else:
+        speak("Authentication failed.")
+        return None
+
+# --- Parse bet command ---
+def parse_bet(command, fixtures):
+    for fixture in fixtures:
+        if "pirates" in command and "chiefs" in command:
+            match = "pirates vs chiefs"
+            break
+        elif any(team in command for team in fixture.split("vs")):
+            match = fixture
+            break
+    else:
+        match = None
+
+    amount_match = re.search(r"(\d+)\s*rand", command)
+    amount = int(amount_match.group(1)) if amount_match else None
+
+    if "win" in command or "uwina" in command:
+        bet_type = "win"
+    elif "draw" in command or "idrowa" in command:
+        bet_type = "draw"
+    else:
+        bet_type = "unknown"
+
+    return match, bet_type, amount
+
+# --- Multilingual prompts ---
+prompts = {
+    "en": {
+        "greet": "Welcome to VoiceBet. Please choose your language.",
+        "ask": "How can I assist you?",
+        "confirm": "Please confirm your bet.",
+        "success": "Bet placed successfully!"
+    },
+    "zu": {
+        "greet": "Siyakwamukela ku-VoiceBet. Sicela ukhethe ulimi lwakho.",
+        "ask": "Ngingakusiza kanjani?",
+        "confirm": "Sicela uqinisekise ukubheja kwakho.",
+        "success": "Ukubheja kuqinisekisiwe!"
+    }
+}
+
+# --- Main flow ---
+def main():
+    speak(prompts["en"]["greet"])
+    lang_choice = listen()
+    language = "zu" if "zulu" in lang_choice else "en"
+    speak(prompts[language]["ask"])
+
+    user = authenticate_user()
+    if not user:
+        return
+
+    fixtures = get_fixtures()
+    command = listen()
+    match, bet_type, amount = parse_bet(command, fixtures)
+
+    if match and bet_type != "unknown" and amount:
+        speak(prompts[language]["confirm"])
+        confirm = listen()
+        if "yes" in confirm or "yebo" in confirm:
+            cursor.execute("INSERT INTO bets (user_id, language, match, bet_type, amount, authenticated) VALUES (?, ?, ?, ?, ?, ?)",
+                           (user, language, match, bet_type, amount, True))
+            conn.commit()
+            speak(prompts[language]["success"])
+        else:
+            speak("Bet cancelled.")
+    else:
+        speak("Sorry, I couldn't understand your bet.")
+
+main()
